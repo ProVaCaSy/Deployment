@@ -1,0 +1,47 @@
+# Wird beim Start von nginx mit den Werten aus der .env ausgefüllt.
+
+# Frontend
+server {
+    listen 80;
+    server_name ${APP_DOMAIN};
+
+    location / {
+        proxy_pass http://frontend:80;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Backend (REST API)
+server {
+    listen 80;
+    server_name ${API_DOMAIN};
+
+    location / {
+        proxy_pass http://backend:8080;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Keycloak
+server {
+    listen 80;
+    server_name ${AUTH_DOMAIN};
+
+    # Keycloak schickt große Header (Tokens, Cookies)
+    proxy_buffer_size 128k;
+    proxy_buffers 4 256k;
+    proxy_busy_buffers_size 256k;
+
+    location / {
+        proxy_pass http://keycloak:8080;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Port ${HTTP_PORT};
+    }
+}
