@@ -1,6 +1,8 @@
 # (Pro)VaCaSy auf der Test-VM: alles als Container
-# Vorbereitung: .env aus .env.example anlegen und Werte setzen.
-# Starten:      docker compose pull && docker compose up -d
+# Vorbereitung: .env.bwcloud aus .env.example anlegen und Werte setzen.
+# Starten:      docker compose --env-file .env.bwcloud pull
+#               docker compose --env-file .env.bwcloud up -d
+# Jeder docker compose Befehl für diese Datei braucht --env-file .env.bwcloud.
 # Die Images kommen aus GitHub Packages (ghcr.io/provacasy/...).
 
 services:
@@ -8,9 +10,9 @@ services:
   nginx:
     image: nginx:stable-alpine
     environment:
-      APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN Später in der .env bitte setzen!}
-      API_DOMAIN: ${API_DOMAIN:?API_DOMAIN Später in der .env bitte setzen!}
-      AUTH_DOMAIN: ${AUTH_DOMAIN:?AUTH_DOMAIN Später in der .env bitte setzen!}
+      APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
+      API_DOMAIN: ${API_DOMAIN:?API_DOMAIN fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
+      AUTH_DOMAIN: ${AUTH_DOMAIN:?AUTH_DOMAIN fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
       HTTP_PORT: ${HTTP_PORT:-8080}
     ports:
       - "${HTTP_PORT:-8080}:80"
@@ -31,7 +33,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/provacasy
       SPRING_DATASOURCE_USERNAME: provacasy
-      SPRING_DATASOURCE_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD Später in der .env bitte setzen!}
+      SPRING_DATASOURCE_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
       # Der Issuer ist die öffentliche Adresse von Keycloak (steht so im Token).
       # Die Schlüssel holt das Backend direkt über das interne Netz.
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://${AUTH_DOMAIN}:${HTTP_PORT:-8080}/realms/hse
@@ -49,7 +51,7 @@ services:
     environment:
       POSTGRES_DB: provacasy
       POSTGRES_USER: provacasy
-      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD Später in der .env bitte setzen!}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -65,7 +67,7 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:?KC_DB_PASSWORD Später in der .env bitte setzen!}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:?KC_DB_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
     volumes:
       - keycloak-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -80,11 +82,11 @@ services:
     command: start --import-realm
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:?KC_ADMIN_PASSWORD Später in der .env bitte setzen!}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:?KC_ADMIN_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: ${KC_DB_PASSWORD:?KC_DB_PASSWORD Später in der .env bitte setzen!}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:?KC_DB_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
       KC_HOSTNAME: http://${AUTH_DOMAIN}:${HTTP_PORT:-8080}
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded

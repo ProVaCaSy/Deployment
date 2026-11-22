@@ -1,1 +1,4 @@
+# Lokale Einstellungen mit Passwörtern, kommen nie ins Repository
 .env
+.env.*
+!.env.example
