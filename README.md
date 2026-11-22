@@ -40,13 +40,7 @@ docker compose -f docker-compose.dev.yml up -d
 
 Keycloak braucht beim ersten Start etwa eine Minute. Der Realm hse wird dabei automatisch importiert.
 
-> **Achtung:** Docker Compose liest eine `.env` im Ordner `Deployment` automatisch mit. Liegt dort eine `.env` für die Test-VM, bekommt die lokale Datenbank deren Passwort und das Backend kann sich nicht mehr anmelden (siehe [Häufige Fehler](#häufige-fehler)). Für die lokale Entwicklung braucht es keine `.env`. Ist trotzdem eine vorhanden, unter Linux und macOS so starten:
->
-> ```bash
-> docker compose --env-file /dev/null -f docker-compose.dev.yml up -d
-> ```
->
-> Unter Windows die `.env` vorher umbenennen.
+> **Hinweis:** Für die lokale Entwicklung wird keine Env-Datei gebraucht, es gelten die Standardwerte. Die Einstellungen für die Test-VM stehen in `.env.bwcloud` und werden nur mit `--env-file` geladen (siehe [Komplette Umgebung im Container](#komplette-umgebung-im-container-test-vm)).
 
 ### 3. Backend starten
 
@@ -114,14 +108,16 @@ Nach `down -v` ist die Datenbank leer und der Realm wird neu importiert.
 
 > **Achtung:** Der Realm in `keycloak/hse-realm.json` enthält die Demo-Benutzer mit Passwort gleich Benutzername. Für eine von außen erreichbare VM ist er nicht geeignet. Ein eigener Realm ohne Demo-Benutzer und HTTPS sind in Arbeit.
 
-### 1. .env anlegen
+### 1. .env.bwcloud anlegen
 
 ```bash
 cd Deployment
-cp .env.example .env
+cp .env.example .env.bwcloud
 ```
 
-In der `.env` alle Werte setzen. Die Passwörter dürfen nicht `change-me` bleiben, die Domains ohne `http://` und ohne Port eintragen. Fehlt ein Pflichtwert, bricht Compose mit einer Meldung ab.
+In der `.env.bwcloud` alle Werte setzen. Die Passwörter dürfen nicht `change-me` bleiben, die Domains ohne `http://` und ohne Port eintragen.
+
+Docker Compose liest diese Datei nicht automatisch. Deshalb braucht jeder `docker compose` Befehl für die Test-VM `--env-file .env.bwcloud`. Fehlt die Angabe oder ein Wert, bricht Compose mit der Meldung `... fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten` ab.
 
 ### 2. Lokal testen ohne echte Domains
 
@@ -131,7 +127,7 @@ Für einen Test auf dem eigenen Rechner reichen Test-Domains, die auf den eigene
 127.0.0.1 app.test api.test auth.test
 ```
 
-Und in der `.env`:
+Und in der `.env.bwcloud`:
 
 ```
 APP_DOMAIN=app.test
@@ -145,8 +141,8 @@ Beide Compose-Dateien nutzen dieselben Volumes. Lief vorher die Dev-Umgebung, di
 
 ```bash
 docker compose -f docker-compose.dev.yml down -v
-docker compose pull
-docker compose up -d
+docker compose --env-file .env.bwcloud pull
+docker compose --env-file .env.bwcloud up -d
 ```
 
 ### 4. Prüfen
@@ -154,10 +150,10 @@ docker compose up -d
 Keycloak braucht etwa eine Minute. Bis dahin antwortet nginx mit `502`.
 
 ```bash
-docker compose ps
+docker compose --env-file .env.bwcloud ps
 curl -i -H "Host: api.test" http://localhost:8080/                      # Backend: 401 ist richtig
 curl -i -H "Host: auth.test" http://localhost:8080/realms/hse/account   # Keycloak: 302 oder Seite
-docker compose exec nginx cat /etc/nginx/conf.d/default.conf           # Sind die Domains eingesetzt?
+docker compose --env-file .env.bwcloud exec nginx cat /etc/nginx/conf.d/default.conf   # Sind die Domains eingesetzt?
 ```
 
 Im Browser: http://app.test:8080 und http://auth.test:8080/realms/hse/account
@@ -174,7 +170,7 @@ Danach im eigenen Browser http://localhost:8025 öffnen.
 
 ## Images aus GitHub Packages
 
-`docker compose pull` lädt `ghcr.io/provacasy/backend` und `ghcr.io/provacasy/frontend`. Die Pipelines bauen sie nach jedem Merge auf `main` mit den Tags `latest` und der Commit-SHA. Eine bestimmte Version läuft mit `IMAGE_TAG` in der `.env`.
+`docker compose pull` lädt `ghcr.io/provacasy/backend` und `ghcr.io/provacasy/frontend`. Die Pipelines bauen sie nach jedem Merge auf `main` mit den Tags `latest` und der Commit-SHA. Eine bestimmte Version läuft mit `IMAGE_TAG` in der `.env.bwcloud`.
 
 Meldet `docker compose pull` den Fehler `denied` oder `unauthorized`, ist das Paket privat. Dann mit einem eigenen GitHub Personal Access Token (Scope `read:packages`) anmelden und den Token als Passwort eingeben:
 
@@ -182,20 +178,21 @@ Meldet `docker compose pull` den Fehler `denied` oder `unauthorized`, ist das Pa
 docker login ghcr.io -u <github-benutzername>
 ```
 
-Den Token nie ins Repository oder in die `.env` schreiben.
+Den Token nie ins Repository oder in die `.env.bwcloud` schreiben.
 
 ## Häufige Fehler
 
 | Meldung | Ursache | Lösung |
 |---------|---------|--------|
-| `password authentication failed for user "provacasy"` | Die Datenbank wurde mit einem anderen Passwort angelegt, zum Beispiel aus der `.env` oder von der Test-VM-Variante. PostgreSQL setzt das Passwort nur beim ersten Start. | `docker compose -f docker-compose.dev.yml down -v`, danach ohne `.env` starten (siehe oben). Löscht die lokalen Daten. |
+| `required variable ... is missing a value` | `--env-file .env.bwcloud` vergessen oder ein Wert fehlt in der Datei. | Befehl mit `--env-file .env.bwcloud` wiederholen und die Werte in der Datei prüfen. |
+| `password authentication failed for user "provacasy"` | Die Datenbank wurde mit einem anderen Passwort angelegt, meist weil vorher die Test-VM-Variante lief (beide nutzen dieselben Volumes) oder noch eine alte `.env` im Ordner liegt. PostgreSQL setzt das Passwort nur beim ersten Start. | Eine alte `.env` in `.env.bwcloud` umbenennen, dann `docker compose -f docker-compose.dev.yml down -v` und neu starten. Löscht die lokalen Daten. |
 | `Port 8080 was already in use` beim Backend | Keycloak belegt lokal schon Port 8080. | Backend mit Port 8081 starten (siehe Schritt 3). |
-| `502 Bad Gateway` von nginx | Keycloak oder Backend starten noch. | Etwa eine Minute warten, `docker compose logs -f keycloak` ansehen. |
-| Jede Anfrage landet beim Frontend | Der Host passt zu keiner Domain, dann antwortet der erste Server-Block in nginx. | Bei `curl` den Header `-H "Host: api.test"` mitgeben. Domains in der `.env` prüfen, nach einer Änderung speichern und `docker compose up -d` erneut ausführen. |
+| `502 Bad Gateway` von nginx | Keycloak oder Backend starten noch. | Etwa eine Minute warten, `docker compose --env-file .env.bwcloud logs -f keycloak` ansehen. |
+| Jede Anfrage landet beim Frontend | Der Host passt zu keiner Domain, dann antwortet der erste Server-Block in nginx. | Bei `curl` den Header `-H "Host: api.test"` mitgeben. Domains in der `.env.bwcloud` prüfen, nach einer Änderung speichern und `docker compose --env-file .env.bwcloud up -d` erneut ausführen. |
 | Änderungen an `hse-realm.json` wirken nicht | Der Realm wird nur importiert, wenn er noch nicht existiert. | `down -v` und neu starten. Löscht die Daten. |
-| Backend antwortet mit `401`, obwohl man eingeloggt ist | Der Aussteller (`iss`) im Token passt nicht zur `issuer-uri` im Backend. | `AUTH_DOMAIN` und `HTTP_PORT` in der `.env` prüfen. |
-| `denied` oder `unauthorized` bei `docker compose pull` | Das Paket in GitHub Packages ist privat. | `docker login ghcr.io` (siehe oben). |
-| `manifest unknown` oder `not found` bei `docker compose pull` | Das Image wurde noch nie gebaut. | Pipeline auf `main` abwarten oder im jeweiligen Repo lokal bauen, zum Beispiel `docker build -t ghcr.io/provacasy/frontend:latest .` und dann `docker compose up -d` ohne `pull`. |
+| Backend antwortet mit `401`, obwohl man eingeloggt ist | Der Aussteller (`iss`) im Token passt nicht zur `issuer-uri` im Backend. | `AUTH_DOMAIN` und `HTTP_PORT` in der `.env.bwcloud` prüfen. |
+| `denied` oder `unauthorized` beim Pull | Das Paket in GitHub Packages ist privat. | `docker login ghcr.io` (siehe oben). |
+| `manifest unknown` oder `not found` beim Pull | Das Image wurde noch nie gebaut. | Pipeline auf `main` abwarten oder im jeweiligen Repo lokal bauen, zum Beispiel `docker build -t ghcr.io/provacasy/frontend:latest .` und dann `docker compose --env-file .env.bwcloud up -d` ohne `pull`. |
 | `permission denied` bei `/var/run/docker.sock` (Linux) | Die Sitzung kennt die Gruppe `docker` noch nicht. | Neu anmelden oder `newgrp docker`. |
 | `./mvnw verify` findet keine Datenbank | Die Dev-Umgebung läuft nicht. | Zuerst `docker compose -f docker-compose.dev.yml up -d`. |
 | `release version 21 not supported` | Falsche Java-Version aktiv. | `java -version` prüfen und Java 21 aktivieren. |
@@ -203,5 +200,6 @@ Den Token nie ins Repository oder in die `.env` schreiben.
 ## Hinweise
 
 - Die Zugangsdaten und Demo-Benutzer gelten nur für die lokale Entwicklung.
-- Die `.env` (Vorlage: `.env.example`) ist für die Test-VM gedacht und kommt nicht ins Repository. Lokal wird keine `.env` gebraucht.
+- Die `.env.bwcloud` (Vorlage: `.env.example`) ist für die Test-VM gedacht und steht in der `.gitignore`. Lokal wird keine Env-Datei gebraucht.
+- Wer noch eine `.env` von früher im Ordner `Deployment` hat, benennt sie um: `mv .env .env.bwcloud` (Windows: `ren .env .env.bwcloud`).
 - `V1__init.sql` im Backend nach dem Merge nicht mehr ändern. Schemaänderungen kommen in eine neue Datei `V2__...sql`.
