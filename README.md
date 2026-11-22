@@ -46,17 +46,17 @@ Keycloak braucht beim ersten Start etwa eine Minute. Der Realm hse wird dabei au
 
 ```bash
 cd ../Backend
-./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081
+./mvnw spring-boot:run
 ```
 
 Unter Windows (PowerShell):
 
 ```powershell
 cd ..\Backend
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.arguments=--server.port=8081"
+.\mvnw.cmd spring-boot:run
 ```
 
-Flyway legt beim Start die Tabellen an. Das Backend läuft lokal auf Port 8081, weil Keycloak schon Port 8080 belegt. Die endgültige Portverteilung ist noch offen.
+Flyway legt beim Start die Tabellen an. Das Backend läuft lokal auf Port 8081 (`server.port` in `application.properties`), weil Keycloak Port 8080 belegt.
 
 ### 4. Frontend starten
 
@@ -186,7 +186,7 @@ Den Token nie ins Repository oder in die `.env.bwcloud` schreiben.
 |---------|---------|--------|
 | `required variable ... is missing a value` | `--env-file .env.bwcloud` vergessen oder ein Wert fehlt in der Datei. | Befehl mit `--env-file .env.bwcloud` wiederholen und die Werte in der Datei prüfen. |
 | `password authentication failed for user "provacasy"` | Die Datenbank wurde mit einem anderen Passwort angelegt, meist weil vorher die Test-VM-Variante lief (beide nutzen dieselben Volumes) oder noch eine alte `.env` im Ordner liegt. PostgreSQL setzt das Passwort nur beim ersten Start. | Eine alte `.env` in `.env.bwcloud` umbenennen, dann `docker compose -f docker-compose.dev.yml down -v` und neu starten. Löscht die lokalen Daten. |
-| `Port 8080 was already in use` beim Backend | Keycloak belegt lokal schon Port 8080. | Backend mit Port 8081 starten (siehe Schritt 3). |
+| `Port 8080 was already in use` beim Backend | Keycloak belegt lokal schon Port 8080. | Backend auf dem aktuellen Stand von `main` starten, dort steht `server.port=8081`. Ältere Stände mit `./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081` starten. |
 | `502 Bad Gateway` von nginx | Keycloak oder Backend starten noch. | Etwa eine Minute warten, `docker compose --env-file .env.bwcloud logs -f keycloak` ansehen. |
 | Jede Anfrage landet beim Frontend | Der Host passt zu keiner Domain, dann antwortet der erste Server-Block in nginx. | Bei `curl` den Header `-H "Host: api.test"` mitgeben. Domains in der `.env.bwcloud` prüfen, nach einer Änderung speichern und `docker compose --env-file .env.bwcloud up -d` erneut ausführen. |
 | Änderungen an `hse-realm.json` wirken nicht | Der Realm wird nur importiert, wenn er noch nicht existiert. | `down -v` und neu starten. Löscht die Daten. |

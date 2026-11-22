@@ -31,6 +31,8 @@ services:
   backend:
     image: ghcr.io/provacasy/backend:${IMAGE_TAG:-latest}
     environment:
+      # Im Container bleibt das Backend auf 8080 (nginx leitet an backend:8080), lokal gilt 8081 aus application.properties
+      SERVER_PORT: "8080"
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/provacasy
       SPRING_DATASOURCE_USERNAME: provacasy
       SPRING_DATASOURCE_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
