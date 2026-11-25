@@ -1,0 +1,26 @@
+# Reverse Proxy für (Pro)VaCaSy
+# Die Domains kommen aus der .env.bwcloud ({$NAME} wird beim Start von Caddy ersetzt).
+# Caddy holt für jede Domain ein eigenes Zertifikat und leitet HTTP automatisch auf HTTPS um.
+# Für *.localhost (lokaler Test) stellt Caddy eigene Testzertifikate aus, auf der VM kommen sie von Let's Encrypt.
+
+{
+	servers {
+		# Nur HTTP/1.1 und HTTP/2, weil von außen nur TCP auf 443 ankommt (kein HTTP/3 über UDP)
+		protocols h1 h2
+	}
+}
+
+# Frontend
+{$APP_DOMAIN} {
+	reverse_proxy frontend:80
+}
+
+# Backend (REST API)
+{$API_DOMAIN} {
+	reverse_proxy backend:8080
+}
+
+# Keycloak
+{$AUTH_DOMAIN} {
+	reverse_proxy keycloak:8080
+}
