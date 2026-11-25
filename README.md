@@ -81,15 +81,26 @@ Unter Windows (PowerShell) ist nur der Pfad anders: `cd ..\Frontend`.
 
 ## Demo-Benutzer
 
-Das Passwort ist jeweils der Benutzername.
+Das Passwort ist jeweils der Benutzername. Die Benutzer gibt es nur in der lokalen Entwicklung (Realm `keycloak/hse-realm.json`). Neue Benutzer erscheinen erst nach `docker compose -f docker-compose.dev.yml down -v` und neuem Start, weil Keycloak den Realm nur in eine leere Datenbank importiert.
 
-| Benutzer | Gruppe |
-|----------|--------|
-| prof | professors |
-| staff | staff |
-| dekanat | dekanat |
-| student | students (keine Rolle, sieht nur die Landing Page) |
-| realm-admin | verwaltet nur den Realm hse unter /admin |
+| Benutzer | Name | Gruppe | Rolle in der App |
+|----------|------|--------|------------------|
+| prof | pro fessor | professors | Professor |
+| becker | Anna Becker | professors | Professor |
+| weber | Jonas Weber | professors | Professor |
+| lschmidt | Lea Schmidt | professors | Professor |
+| fischer | Max Fischer | professors | Professor |
+| jost | Klaus Günther Jost | professors | Professor |
+| staff | sta ff | staff | Sekretariat |
+| aschmidt | Anna Schmidt | staff | Sekretariat |
+| dekanat | deka nat | dekanat | Dekanat |
+| hoffmann | Paul Hoffmann | dekanat | Dekanat |
+| richter | Klaus Richter | dekanat und professors | Dekanat (die höchste Rolle zählt) |
+| student | stu dent | students | keine Rolle, sieht nur die Landing Page |
+| gast | Gast Ohnerolle | keine | keine Rolle, sieht nur die Landing Page |
+| realm-admin | realm admin | keine | verwaltet nur den Realm hse unter /admin |
+
+Zum Testen http://localhost:5173 öffnen (Backend und Frontend müssen laufen) und mit einem der Benutzer einloggen, am besten in einem privaten Fenster, damit keine alte Anmeldung stört.
 
 ## Nützliche Befehle
 
