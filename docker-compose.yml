@@ -6,18 +6,22 @@
 # Die Images kommen aus GitHub Packages (ghcr.io/provacasy/...).
 
 services:
-  # Reverse Proxy: leitet nach Domain an Frontend, Backend und Keycloak weiter
-  nginx:
-    image: nginx:stable-alpine
+  # Reverse Proxy: leitet nach Domain an Frontend, Backend und Keycloak weiter.
+  # Caddy holt die HTTPS Zertifikate selbst (Let's Encrypt, für *.localhost eigene Testzertifikate).
+  caddy:
+    image: caddy:2-alpine
     environment:
       APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
       API_DOMAIN: ${API_DOMAIN:?API_DOMAIN fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
       AUTH_DOMAIN: ${AUTH_DOMAIN:?AUTH_DOMAIN fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
-      HTTP_PORT: ${HTTP_PORT:-8080}
     ports:
-      - "${HTTP_PORT:-8080}:80"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Zertifikate dauerhaft speichern, sonst holt Caddy bei jedem Neustart neue (Let's Encrypt hat Limits)
+      - caddy-data:/data
+      - caddy-config:/config
     depends_on:
       - frontend
       - backend
@@ -31,14 +35,14 @@ services:
   backend:
     image: ghcr.io/provacasy/backend:${IMAGE_TAG:-latest}
     environment:
-      # Im Container bleibt das Backend auf 8080 (nginx leitet an backend:8080), lokal gilt 8081 aus application.properties
+      # Im Container bleibt das Backend auf 8080 (Caddy leitet an backend:8080), lokal gilt 8081 aus application.properties
       SERVER_PORT: "8080"
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/provacasy
       SPRING_DATASOURCE_USERNAME: provacasy
       SPRING_DATASOURCE_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
       # Der Issuer ist die öffentliche Adresse von Keycloak (steht so im Token).
       # Die Schlüssel holt das Backend direkt über das interne Netz.
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://${AUTH_DOMAIN}:${HTTP_PORT:-8080}/realms/hse
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://${AUTH_DOMAIN}/realms/hse
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/hse/protocol/openid-connect/certs
       SPRING_MAIL_HOST: mailhog
       SPRING_MAIL_PORT: "1025"
@@ -89,7 +93,8 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: ${KC_DB_PASSWORD:?KC_DB_PASSWORD fehlt, in .env.bwcloud setzen und mit --env-file .env.bwcloud starten}
-      KC_HOSTNAME: http://${AUTH_DOMAIN}:${HTTP_PORT:-8080}
+      # Öffentliche Adresse über Caddy (HTTPS). Keycloak selbst spricht intern nur HTTP.
+      KC_HOSTNAME: https://${AUTH_DOMAIN}
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded
     volumes:
@@ -100,7 +105,7 @@ services:
     restart: unless-stopped
 
   # Test-Mailserver: Weboberfläche nur auf der VM selbst (Zugriff per SSH Tunnel)
-  # ssh -L 8025:localhost:8025 <benutzer>@<vm>
+  # ssh -p <ssh-port> -L 8025:localhost:8025 <benutzer>@<server>
   mailhog:
     image: mailhog/mailhog
     ports:
@@ -110,3 +115,5 @@ services:
 volumes:
   db-data:
   keycloak-db-data:
+  caddy-data:
+  caddy-config:
