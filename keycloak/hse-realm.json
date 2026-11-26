@@ -172,6 +172,203 @@
       "groups": [
         "/students"
       ]
+    },
+    {
+      "username": "becker",
+      "firstName": "Anna",
+      "lastName": "Becker",
+      "email": "anna.becker@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "becker",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/professors"
+      ]
+    },
+    {
+      "username": "weber",
+      "firstName": "Jonas",
+      "lastName": "Weber",
+      "email": "jonas.weber@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "weber",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/professors"
+      ]
+    },
+    {
+      "username": "lschmidt",
+      "firstName": "Lea",
+      "lastName": "Schmidt",
+      "email": "lea.schmidt@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "lschmidt",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/professors"
+      ]
+    },
+    {
+      "username": "fischer",
+      "firstName": "Max",
+      "lastName": "Fischer",
+      "email": "max.fischer@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "fischer",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/professors"
+      ]
+    },
+    {
+      "username": "jost",
+      "firstName": "Klaus Günther",
+      "lastName": "Jost",
+      "email": "klaus.jost@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "jost",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/professors"
+      ]
+    },
+    {
+      "username": "aschmidt",
+      "firstName": "Anna",
+      "lastName": "Schmidt",
+      "email": "anna.schmidt@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "aschmidt",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/staff"
+      ]
+    },
+    {
+      "username": "hoffmann",
+      "firstName": "Paul",
+      "lastName": "Hoffmann",
+      "email": "paul.hoffmann@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "hoffmann",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/dekanat"
+      ]
+    },
+    {
+      "username": "richter",
+      "firstName": "Klaus",
+      "lastName": "Richter",
+      "email": "klaus.richter@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "richter",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": [
+        "/dekanat",
+        "/professors"
+      ]
+    },
+    {
+      "username": "gast",
+      "firstName": "Gast",
+      "lastName": "Ohnerolle",
+      "email": "gast.ohnerolle@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "gast",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "notBefore": 0,
+      "groups": []
     }
   ],
   "clients": [
